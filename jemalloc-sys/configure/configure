@@ -12386,8 +12386,7 @@ fi
 
 
 # Check whether --enable-user_config was given.
-if test ${enable_user_config+y}
-then :
+if test "${enable_user_config+set}" = set; then :
   enableval=$enable_user_config; if test "x$enable_user_config" = "xno" ; then
   enable_user_config="0"
 else
@@ -18385,4 +18384,3 @@ printf "%s\n" "tsan               : ${enable_tsan}" >&6; }
 printf "%s\n" "ubsan              : ${enable_ubsan}" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ===============================================================================" >&5
 printf "%s\n" "===============================================================================" >&6; }
-
