@@ -73,6 +73,45 @@ fn expect_env(name: &str) -> String {
     env::var(name).unwrap_or_else(|_| panic!("{} was not set", name))
 }
 
+/// Attempts to turn the given path into a short path. Returns none in case of
+/// error.
+fn to_short_path(orig_path: &Path) -> Option<PathBuf> {
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR was not set"));
+    let script_path = out_dir.join("long_to_short.bat");
+    std::fs::write(&script_path, "@echo %~s1").unwrap();
+    let path = match Command::new(script_path).arg(orig_path).output() {
+        Ok(v) if v.status.success() => v.stdout,
+        Ok(v) => {
+            warning!(
+                "Failed to expand {} to a short path, the command exited with status {}",
+                orig_path.display(),
+                v.status
+            );
+            return None;
+        }
+        Err(err) => {
+            warning!(
+                "Failed to expand {} to a short path: {}",
+                orig_path.display(),
+                err
+            );
+            return None;
+        }
+    };
+
+    // TODO: Turn the Vec<u8> into an OsString so we can lossly turn it into a
+    // PathBuf.
+    let path = match String::from_utf8(path) {
+        Ok(v) => v,
+        Err(_err) => {
+            warning!("Short path of {} is not valid utf-8", orig_path.display());
+            return None;
+        }
+    };
+
+    Some(PathBuf::from(path.trim()))
+}
+
 // TODO: split main functions and remove following allow.
 #[allow(clippy::cognitive_complexity)]
 fn main() {
@@ -166,9 +205,21 @@ fn main() {
     // cc_env() returns empty when no wrapper is configured, so fall back to path().
     let cc = compiler.cc_env();
     let cc = if cc.is_empty() {
-        compiler.path().as_os_str().to_owned()
+        let mut compiler_path = compiler.path().to_owned();
+        if cfg!(windows) && compiler_path.to_string_lossy().contains(' ') {
+            // Autoconf does not support spaces in the compiler path. This is not
+            // usually a problem, except on windows where the MSVC compiler (cl.exe)
+            // is usually found in C:\Program Files, which has a space. Fortunately,
+            // windows has a trick that can be used: the path can be turned into a
+            // "short path", turning C:\Program Files into C:\PROGRA~2. Through this
+            // trick, we can attempt to eliminate the spaces.
+            if let Some(short_path) = to_short_path(&compiler_path) {
+                compiler_path = short_path;
+            }
+        }
+        compiler_path
     } else {
-        cc
+        cc.into()
     };
 
     info!("CC={:?}", cc);
