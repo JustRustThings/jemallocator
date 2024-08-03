@@ -23,6 +23,11 @@ jobs:
             nobgt: 0
             no_tests: 1
             tag: ubuntu-24.04-arm
+          - name: x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
+            nobgt: 0
+            no_tests: 0
+            tag: windows-latest
           - name: x86_64-apple-darwin
             target: x86_64-apple-darwin
             nobgt: 0
@@ -66,6 +71,7 @@ jobs:
       with:
         submodules: true
     - name: install
+      shell: bash
       run: |
         if [[ "${{ matrix.rust }}" == "nightly" ]]; then
             rustup default nightly
