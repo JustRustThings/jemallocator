@@ -129,7 +129,7 @@ macro_rules! make_test {
                 match stringify!($id) {
                     "background_thread" |
                     "max_background_threads"
-                        if cfg!(target_os = "macos") => return,
+                        if cfg!(any(target_os = "macos", windows)) => return,
                     _ => (),
                 }
 

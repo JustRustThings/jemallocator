@@ -25,7 +25,7 @@ jobs:
             tag: ubuntu-24.04-arm
           - name: x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
-            nobgt: 0
+            nobgt: 1
             no_tests: 1
             tag: windows-latest
           - name: x86_64-apple-darwin
