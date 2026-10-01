@@ -1,3 +1,4 @@
 [submodule "jemalloc-sys/jemalloc"]
 	path = jemalloc-sys/jemalloc
-	url = https://github.com/jemalloc/jemalloc
+	url = https://github.com/JustRustThings/jemalloc
+	branch = stuff-5.3.1
